@@ -11,19 +11,16 @@ double hit_sphere(const Point3& center, double radius, const Ray& r)
 	// oc = 球心C - 光线原点Q
 	Vec3 oc = center - r.origin();
 	// 求根公式
-	double a = dot(r.direction(), r.direction());
-	double b = -2.0 * dot(r.direction(), oc);
-	double c = dot(oc, oc) - radius * radius;
-	double delta = b * b - 4 * a * c;
+	double a = r.direction().lengthSquared();
+	double h = dot(r.direction(), oc);
+	double c = oc.lengthSquared() - radius * radius;
+	double delta = h * h - a * c;
 	// 返回有实数解的结果
 	if (delta < 0)
 	{
 		return -1.0;
 	}
-	else
-	{
-		return (-b - std::sqrt(delta)) / (2.0 * a);
-	}
+	return (h - std::sqrt(delta)) / a;
 }
 
 Color ray_color(const Ray& r)
