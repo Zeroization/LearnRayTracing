@@ -5,13 +5,35 @@
 #include <iostream>
 #include <format>
 
+// 光线r是否和以center为球心, radius为半径的球相交
+bool hit_sphere(const Point3& center, double radius, const Ray& r)
+{
+	// oc = 球心C - 光线原点Q
+	Vec3 oc = center - r.origin();
+	// 求根公式
+	double a = dot(r.direction(), r.direction());
+	double b = -2.0 * dot(r.direction(), oc);
+	double c = dot(oc, oc) - radius * radius;
+	// 返回有实数解的结果
+	return (b * b - 4 * a * c >= 0);
+}
+
 Color ray_color(const Ray& r)
 {
+	// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 球 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+	if (hit_sphere(Point3(0, 0, -1), 0.5, r))
+	{
+		return Color(1, 0, 0);
+	}
+	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 球 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+	// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 背景 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 	Vec3 dir = r.direction();
 	// [-1, 1] -> [0, 1]
 	double a = 0.5 * (dir.y() + 1.0);
 	// 线性混合
 	return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
+	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 背景 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 }
 
 int main()
