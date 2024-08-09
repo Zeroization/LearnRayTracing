@@ -5,8 +5,8 @@
 #include <iostream>
 #include <format>
 
-// 光线r是否和以center为球心, radius为半径的球相交
-bool hit_sphere(const Point3& center, double radius, const Ray& r)
+// 返回光线r与以center为球心, radius为半径的球相交的最近点
+double hit_sphere(const Point3& center, double radius, const Ray& r)
 {
 	// oc = 球心C - 光线原点Q
 	Vec3 oc = center - r.origin();
@@ -14,16 +14,26 @@ bool hit_sphere(const Point3& center, double radius, const Ray& r)
 	double a = dot(r.direction(), r.direction());
 	double b = -2.0 * dot(r.direction(), oc);
 	double c = dot(oc, oc) - radius * radius;
+	double delta = b * b - 4 * a * c;
 	// 返回有实数解的结果
-	return (b * b - 4 * a * c >= 0);
+	if (delta < 0)
+	{
+		return -1.0;
+	}
+	else
+	{
+		return (-b - std::sqrt(delta)) / (2.0 * a);
+	}
 }
 
 Color ray_color(const Ray& r)
 {
 	// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 球 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-	if (hit_sphere(Point3(0, 0, -1), 0.5, r))
+	double t = hit_sphere(Point3(0, 0, -1), 0.5, r);
+	if (t > 0.0)
 	{
-		return Color(1, 0, 0);
+		Vec3 normal = unitVector(r.at(t) - Vec3(0, 0, -1));
+		return 0.5 * Color(normal.x() + 1, normal.y() + 1, normal.z() + 1);
 	}
 	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 球 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -67,8 +77,10 @@ int main()
 
 	// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 渲染 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 	std::cout << std::format("P3\n{} {}\n255\n", imgWidth, imgHeight);
-	for (int j = 0; j < imgHeight; ++j) {
-		for (int i = 0; i < imgWidth; ++i) {
+	for (int j = 0; j < imgHeight; ++j) 
+	{
+		for (int i = 0; i < imgWidth; ++i)
+		{
 			Point3 cur_pixel_center = pixel00_pos + (i * pixel_delta_u) + (j * pixel_delta_v);
 			Vec3 ray_direction = unitVector((cur_pixel_center - cameraCenter));
 			Ray ray(cameraCenter, ray_direction);
