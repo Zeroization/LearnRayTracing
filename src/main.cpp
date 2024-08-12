@@ -1,38 +1,18 @@
-﻿#include "util/vec3.hpp"
-#include "util/color.hpp"
-#include "ray/ray.hpp"
-
-#include <iostream>
+﻿#include "rtweekend.h"
+#include "ray/hittable.hpp"
+#include "ray/hittableList.hpp"
+#include "object/sphere.hpp"
 #include <format>
 
-// 返回光线r与以center为球心, radius为半径的球相交的最近点
-double hit_sphere(const Point3& center, double radius, const Ray& r)
+Color ray_color(const Ray& r, const Hittable& world)
 {
-	// oc = 球心C - 光线原点Q
-	Vec3 oc = center - r.origin();
-	// 求根公式
-	double a = r.direction().lengthSquared();
-	double h = dot(r.direction(), oc);
-	double c = oc.lengthSquared() - radius * radius;
-	double delta = h * h - a * c;
-	// 返回有实数解的结果
-	if (delta < 0)
+	// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 和光线相交物体 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+	HitRecord rec;
+	if (world.hit(r, Interval(0, infinity), rec))
 	{
-		return -1.0;
+		return 0.5 * (rec.normal + Color(1, 1, 1));
 	}
-	return (h - std::sqrt(delta)) / a;
-}
-
-Color ray_color(const Ray& r)
-{
-	// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 球 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-	double t = hit_sphere(Point3(0, 0, -1), 0.5, r);
-	if (t > 0.0)
-	{
-		Vec3 normal = unitVector(r.at(t) - Vec3(0, 0, -1));
-		return 0.5 * Color(normal.x() + 1, normal.y() + 1, normal.z() + 1);
-	}
-	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 球 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 和光线相交物体 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 	// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 背景 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 	Vec3 dir = r.direction();
@@ -51,6 +31,11 @@ int main()
 	int imgWidth = 400;
 	int imgHeight = static_cast<int>(imgWidth / aspectRadio);
 	imgHeight = (imgHeight < 1) ? 1 : imgHeight;				// 确保高度至少为1
+
+	// 场景设定
+	HittableList world;
+	world.add(make_shared<Sphere>(Point3(0, 0, -1), 0.5));
+	world.add(make_shared<Sphere>(Point3(0, -100.5, -1), 100));
 
 	// 相机设定
 	double focalLength = 1.0;				// 焦距
@@ -81,7 +66,7 @@ int main()
 			Point3 cur_pixel_center = pixel00_pos + (i * pixel_delta_u) + (j * pixel_delta_v);
 			Vec3 ray_direction = unitVector((cur_pixel_center - cameraCenter));
 			Ray ray(cameraCenter, ray_direction);
-			Color pixel_color = ray_color(ray);
+			Color pixel_color = ray_color(ray, world);
 
 			writeColor(std::cout, pixel_color);
 		}
