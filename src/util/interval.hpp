@@ -12,6 +12,12 @@ public:
 	double size() const { return max - min; }
 	bool contains(double x) const { return x >= min && x <= max; }
 	bool surrounds(double x) const { return x > min && x < max; }
+	double clamp(double x) const
+	{
+		if (x < min) return min;
+		if (x > max) return max;
+		return x;
+	}
 
 	// 常用区间
 	static const Interval empty, universe;
