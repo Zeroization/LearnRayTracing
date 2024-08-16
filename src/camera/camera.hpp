@@ -9,6 +9,7 @@ public:
 	double aspectRadio = 1.0;			// 图像的宽高比
 	int imgWidth = 100;					// 图像宽度
 	int samples_per_pixel = 10;			// 每像素采样数, 即SPP
+	int max_depth = 10;					// 光线的最大弹射次数
 
 	void render(const Hittable& world)
 	{
@@ -23,7 +24,7 @@ public:
 				for (int sampleCnt = 0; sampleCnt < samples_per_pixel; ++sampleCnt)
 				{
 					Ray r = get_ray(i, j);
-					final_pixel_color += ray_color(r, world);
+					final_pixel_color += ray_color(r, max_depth, world);
 				}
 				writeColor(std::cout, pixel_sample_scale * final_pixel_color);
 			}
@@ -83,13 +84,22 @@ private:
 		return Vec3(random_double() - 0.5, random_double() - 0.5, 0);
 	}
 
-	Color ray_color(const Ray& r, const Hittable& world) const
+	Color ray_color(const Ray& r, int depth, const Hittable& world) const
 	{
+		// 递归退出
+		if (depth <= 0)
+		{
+			return Color(0, 0, 0);
+		}
+
 		// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 和光线相交物体 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 		HitRecord rec;
-		if (world.hit(r, Interval(0, infinity), rec))
+		if (world.hit(r, Interval(0.001, infinity), rec))
 		{
-			return 0.5 * (rec.normal + Color(1, 1, 1));
+			// 生成随机反射方向
+			Vec3 direction = random_on_hemisphere(rec.normal);
+			// 开始下一轮反射
+			return 0.5 * ray_color(Ray(rec.position, direction), depth - 1, world);
 		}
 		// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 和光线相交物体 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
