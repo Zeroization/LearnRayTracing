@@ -120,11 +120,13 @@ inline Vec3 random_in_unit_sphere()
 	}
 }
 
+// 返回一个范围是着色点单位球的随机向量
 inline Vec3 random_unit_vector()
 {
 	return unitVector(random_in_unit_sphere());
 }
 
+// 返回一个范围是着色点外半球的随机向量
 inline Vec3 random_on_hemisphere(const Vec3& normal)
 {
 	Vec3 on_unit_sphere = random_unit_vector();

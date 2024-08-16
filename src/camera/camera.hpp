@@ -96,8 +96,9 @@ private:
 		HitRecord rec;
 		if (world.hit(r, Interval(0.001, infinity), rec))
 		{
-			// 生成随机反射方向
-			Vec3 direction = random_on_hemisphere(rec.normal);
+			// Lambert反射模型 (内外表面单位球均考虑)
+			Vec3 direction = rec.normal + random_unit_vector();
+			// 只考虑外表面单位球: Vec3 direction = rec.normal + random_on_hemisphere(rec.normal);
 			// 开始下一轮反射
 			return 0.5 * ray_color(Ray(rec.position, direction), depth - 1, world);
 		}
