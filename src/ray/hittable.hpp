@@ -1,10 +1,14 @@
 ﻿#pragma once
 
+// 不添加定义, 避免循环引用
+class Material;
+
 class HitRecord 
 {
 public:
 	Point3 position;
 	Vec3 normal;
+	shared_ptr<Material> material;
 	double t;
 	bool front_face;
 

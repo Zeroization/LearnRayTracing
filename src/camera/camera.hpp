@@ -2,6 +2,7 @@
 
 #include "../rtweekend.h"
 #include "../ray/hittable.hpp"
+#include "../material/material.hpp"
 
 class Camera
 {
@@ -96,11 +97,13 @@ private:
 		HitRecord rec;
 		if (world.hit(r, Interval(0.001, infinity), rec))
 		{
-			// Lambert反射模型 (内外表面单位球均考虑)
-			Vec3 direction = rec.normal + random_unit_vector();
-			// 只考虑外表面单位球: Vec3 direction = rec.normal + random_on_hemisphere(rec.normal);
-			// 开始下一轮反射
-			return 0.5 * ray_color(Ray(rec.position, direction), depth - 1, world);
+			Ray scattered;
+			Color attenuation;
+			if (rec.material->scatter(r, rec, attenuation, scattered))
+			{
+				return attenuation * ray_color(scattered, depth - 1, world);
+			}
+			return Color(0, 0, 0);
 		}
 		// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 和光线相交物体 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

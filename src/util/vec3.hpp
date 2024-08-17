@@ -39,6 +39,14 @@ public:
 	double lengthSquared() const { return e[0] * e[0] + e[1] * e[1] + e[2] * e[2]; }
 	double length() const { return std::sqrt(lengthSquared()); }
 
+	// 边界问题
+	bool near_zero() const
+	{
+		// 如果该向量很接近0就返回true
+		double s = 1e-8;
+		return ((std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s));
+	}
+
 	// 生成随机数
 	static Vec3 random()
 	{
@@ -135,4 +143,11 @@ inline Vec3 random_on_hemisphere(const Vec3& normal)
 		return on_unit_sphere;
 	}
 	return -on_unit_sphere;
+}
+
+// 返回入射方向v,单位向量n的镜面反射向量
+inline Vec3 reflect(const Vec3& v, const Vec3& n)
+{
+	// 点乘结果是大小, 因此还要乘个向量n
+	return v - 2 * dot(v, n) * n;
 }

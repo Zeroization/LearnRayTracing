@@ -5,8 +5,8 @@
 class Sphere : public Hittable
 {
 public:
-	Sphere(const Point3& center, double radius)
-		: center(center), radius(std::fmax(0, radius)) {}
+	Sphere(const Point3& center, double radius, shared_ptr<Material> material)
+		: center(center), radius(std::fmax(0, radius)), material(material) {}
 
 	bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override
 	{
@@ -38,6 +38,7 @@ public:
 		rec.position = r.at(rec.t);
 		Vec3 outward_normal = (rec.position - center) / radius;	// 利用定义简化法线计算
 		rec.set_face_normal(r, outward_normal);
+		rec.material = material;
 
 		return true;
 	}
@@ -45,4 +46,5 @@ public:
 private:
 	Point3 center;
 	double radius;
+	shared_ptr<Material> material;
 };
