@@ -151,3 +151,12 @@ inline Vec3 reflect(const Vec3& v, const Vec3& n)
 	// 点乘结果是大小, 因此还要乘个向量n
 	return v - 2 * dot(v, n) * n;
 }
+
+// 利用斯涅尔定律计算反射光线
+inline Vec3 refract(const Vec3& v, const Vec3& n, double etaI_div_etaR)
+{
+	double cos_theta = std::fmin(dot(-v, n), 1.0);
+	Vec3 r_out_perp = etaI_div_etaR * (v + cos_theta * n);
+	Vec3 r_out_parallel = -std::sqrt(std::fabs(1.0 - r_out_perp.lengthSquared())) * n;
+	return r_out_perp + r_out_parallel;
+}
