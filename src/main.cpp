@@ -24,7 +24,6 @@ int main()
 	world.add(make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, material_left));
 	world.add(make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.4, material_bubble));
 	world.add(make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, material_right));
-	
 
 	// 初始化摄像机, 然后渲染
 	Camera cam;
@@ -32,6 +31,11 @@ int main()
 	cam.imgWidth = 400;
 	cam.samples_per_pixel = 100;
 	cam.max_depth = 50;
+
+	cam.vfov = 20;
+	cam.lookFrom = Point3(-2, 2, 1);
+	cam.lookAt = Point3(0, 0, -1);
+	cam.vup = Vec3(0, 1, 0);
 
 	cam.render(world);
 

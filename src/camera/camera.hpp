@@ -12,6 +12,11 @@ public:
 	int samples_per_pixel = 10;			// 每像素采样数, 即SPP
 	int max_depth = 10;					// 光线的最大弹射次数
 
+	double vfov = 90;					// 垂直fov
+	Point3 lookFrom = Point3(0, 0, 0);	// 相机本体位置
+	Point3 lookAt = Point3(0, 0, -1);	// 相机看向的位置
+	Vec3 vup = Vec3(0, 1, 0);			// 指向相机正上方的单位向量
+
 	void render(const Hittable& world)
 	{
 		initialize();
@@ -39,31 +44,38 @@ private:
 	Point3 pixel00_pos;					// 像素(0, 0)的位置
 	Vec3 pixel_delta_u;					// 定位像素用的辅助向量
 	Vec3 pixel_delta_v;
+	Vec3 u, v, w;						// 相机空间的三个坐标轴
 
 	void initialize()
 	{
 		imgHeight = static_cast<int>(imgWidth / aspectRadio);
 		imgHeight = (imgHeight < 1) ? 1 : imgHeight;				// 确保高度至少为1
 
-		center = Point3(0, 0, 0);
+		center = lookFrom;
 
 		pixel_sample_scale = 1.0 / samples_per_pixel;
 
-		// 相机设定
-		double focalLength = 1.0;									// 焦距
 
 		// 视口设定
-		double viewportHeight = 2.0;
+		double focalLength = (lookFrom - lookAt).length();									// 焦距
+		double theta = degrees_to_radians(vfov);
+		double h = std::tan(theta / 2);
+		double viewportHeight = 2 * h * focalLength;
 		double viewportWidth = viewportHeight * static_cast<double>(imgWidth) / imgHeight;
 
+		// 相机坐标系初始化
+		w = unitVector(lookFrom - lookAt);
+		u = unitVector(cross(vup, w));
+		v = cross(w, u);
+
 		// 4个辅助向量
-		Vec3 viewport_u = Vec3(viewportWidth, 0, 0);
-		Vec3 viewport_v = Vec3(0, -viewportHeight, 0);
+		Vec3 viewport_u = viewportWidth * u;
+		Vec3 viewport_v = viewportHeight * -v;
 		pixel_delta_u = viewport_u / imgWidth;
 		pixel_delta_v = viewport_v / imgHeight;
 
 		// 计算第一个像素位置
-		Point3 viewport_upper_left = center - Point3(0, 0, focalLength) - viewport_u / 2 - viewport_v / 2;
+		Point3 viewport_upper_left = center - (focalLength * w) - viewport_u / 2 - viewport_v / 2;
 		pixel00_pos = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 	}
 
