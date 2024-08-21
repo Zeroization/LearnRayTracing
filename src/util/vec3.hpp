@@ -145,6 +145,20 @@ inline Vec3 random_on_hemisphere(const Vec3& normal)
 	return -on_unit_sphere;
 }
 
+// 单位圆盘随机采样
+inline Vec3 random_in_unit_disk()
+{
+	while (true)
+	{
+		Vec3 p = Vec3(random_double(-1, 1), random_double(-1, 1), 0);
+		if (p.lengthSquared() < 1)
+		{
+			return p;
+		}
+	}
+}
+
+
 // 返回入射方向v,单位向量n的镜面反射向量
 inline Vec3 reflect(const Vec3& v, const Vec3& n)
 {

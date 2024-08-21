@@ -17,6 +17,9 @@ public:
 	Point3 lookAt = Point3(0, 0, -1);	// 相机看向的位置
 	Vec3 vup = Vec3(0, 1, 0);			// 指向相机正上方的单位向量
 
+	double defocus_angle = 0;			// 光线通过每个像素的变化角度
+	double focus_dist = 10;				// 焦距
+
 	void render(const Hittable& world)
 	{
 		initialize();
@@ -45,6 +48,8 @@ private:
 	Vec3 pixel_delta_u;					// 定位像素用的辅助向量
 	Vec3 pixel_delta_v;
 	Vec3 u, v, w;						// 相机空间的三个坐标轴
+	Vec3 defocus_disk_u;				// 散焦模糊的水平和竖直半径
+	Vec3 defocus_disk_v;
 
 	void initialize()
 	{
@@ -57,10 +62,9 @@ private:
 
 
 		// 视口设定
-		double focalLength = (lookFrom - lookAt).length();									// 焦距
 		double theta = degrees_to_radians(vfov);
 		double h = std::tan(theta / 2);
-		double viewportHeight = 2 * h * focalLength;
+		double viewportHeight = 2 * h * focus_dist;
 		double viewportWidth = viewportHeight * static_cast<double>(imgWidth) / imgHeight;
 
 		// 相机坐标系初始化
@@ -75,17 +79,22 @@ private:
 		pixel_delta_v = viewport_v / imgHeight;
 
 		// 计算第一个像素位置
-		Point3 viewport_upper_left = center - (focalLength * w) - viewport_u / 2 - viewport_v / 2;
+		Point3 viewport_upper_left = center - (focus_dist * w) - viewport_u / 2 - viewport_v / 2;
 		pixel00_pos = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+		// 计算散焦模糊的半径
+		double defocus_radius = focus_dist * std::tan(degrees_to_radians(defocus_angle / 2));
+		defocus_disk_u = u * defocus_radius;
+		defocus_disk_v = v * defocus_radius;
 	}
 
-	// 随机生成一条从摄像机原点出发, 到达像素(i,j)周围的光线
+	// 随机生成一条从摄像机原点为中心的圆盘出发, 到达像素(i,j)周围的光线
 	Ray get_ray(int i, int j) const
 	{
 		Vec3 offset = sample_square();
 		Point3 pixel_sample = pixel00_pos + ((i + offset.x()) * pixel_delta_u) + ((j + offset.y()) * pixel_delta_v);
 
-		Point3 ray_origin = center;
+		Point3 ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
 		Vec3 ray_direction = pixel_sample - ray_origin;
 
 		return Ray(ray_origin, ray_direction);
@@ -95,6 +104,13 @@ private:
 	Vec3 sample_square() const
 	{
 		return Vec3(random_double() - 0.5, random_double() - 0.5, 0);
+	}
+
+	// 返回圆盘的随机2d偏移量
+	Point3 defocus_disk_sample() const
+	{
+		Point3 p = random_in_unit_disk();
+		return center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
 	}
 
 	Color ray_color(const Ray& r, int depth, const Hittable& world) const
