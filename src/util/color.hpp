@@ -27,10 +27,10 @@ inline void writeColor(std::ostream& out, const Color& pixel_color)
 
     // 将属于[0, 1]的RGB分量变换到[0, 255]上
     static const Interval intensity(0.000, 0.999);
-    int rByte = static_cast<int>(256 * intensity.clamp(r));
-    int gByte = static_cast<int>(256 * intensity.clamp(g));
-    int bByte = static_cast<int>(256 * intensity.clamp(b));
+    uint8_t rByte = static_cast<uint8_t>(256 * intensity.clamp(r));
+    uint8_t gByte = static_cast<uint8_t>(256 * intensity.clamp(g));
+    uint8_t bByte = static_cast<uint8_t>(256 * intensity.clamp(b));
 
     // 写到输出流out中
-    out << rByte << ' ' << gByte << ' ' << bByte << '\n';
+    out << rByte << gByte << bByte;
 }

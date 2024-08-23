@@ -24,20 +24,22 @@ public:
 	{
 		initialize();
 
-		std::cout << std::format("P3\n{} {}\n255\n", imgWidth, imgHeight);
-		for (int j = 0; j < imgHeight; ++j)
+		ThreadPool thread_pool;
+		Film film(imgWidth, imgHeight);
+
+		thread_pool.parallelFor(film.getWidth(), film.getHeight(), [&](size_t x, size_t y)
 		{
-			for (int i = 0; i < imgWidth; ++i)
+			Color final_pixel_color(0, 0, 0);
+			for (int sampleCnt = 0; sampleCnt < samples_per_pixel; ++sampleCnt)
 			{
-				Color final_pixel_color(0, 0, 0);
-				for (int sampleCnt = 0; sampleCnt < samples_per_pixel; ++sampleCnt)
-				{
-					Ray r = get_ray(i, j);
-					final_pixel_color += ray_color(r, max_depth, world);
-				}
-				writeColor(std::cout, pixel_sample_scale * final_pixel_color);
+				Ray r = get_ray(x, y);
+				final_pixel_color += ray_color(r, max_depth, world);
 			}
-		}
+			film.setPixel(x, y, pixel_sample_scale * final_pixel_color);
+		});
+		thread_pool.wait();
+
+		film.save("filmTest.ppm");
 	}
 
 private:
