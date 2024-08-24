@@ -49,7 +49,7 @@ public:
 		});
 		thread_pool.wait();
 
-		film.save("filmTest.ppm");
+		film.save("ppm/filmTest.ppm");
 	}
 
 private:
