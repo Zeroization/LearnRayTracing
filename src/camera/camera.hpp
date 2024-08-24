@@ -4,6 +4,9 @@
 #include "../ray/hittable.hpp"
 #include "../material/material.hpp"
 
+#include <atomic>
+#include <syncstream>
+
 class Camera
 {
 public:
@@ -36,6 +39,13 @@ public:
 				final_pixel_color += ray_color(r, max_depth, world);
 			}
 			film.setPixel(x, y, pixel_sample_scale * final_pixel_color);
+
+			// 进度条
+			++count;
+			if (count % film.getWidth() == 0)
+			{
+				std::osyncstream(std::cout) << static_cast<float>(count) / (film.getHeight() * film.getWidth()) << '\n';
+			}
 		});
 		thread_pool.wait();
 
@@ -52,6 +62,7 @@ private:
 	Vec3 u, v, w;						// 相机空间的三个坐标轴
 	Vec3 defocus_disk_u;				// 散焦模糊的水平和竖直半径
 	Vec3 defocus_disk_v;
+	std::atomic<int> count = 0;			// 渲染完的像素数
 
 	void initialize()
 	{

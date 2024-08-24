@@ -43,6 +43,7 @@ public:
 			if (task != nullptr)
 			{
 				task->run();
+				--master->pending_task_count;
 			} 
 			else 
 			{
@@ -55,6 +56,7 @@ public:
 	ThreadPool(size_t thread_count = 0)
 	{
 		alive = 1;
+		pending_task_count = 0;
 
 		// 如果为0, 就赋值成CPU线程数
 		if (thread_count == 0)
@@ -81,7 +83,7 @@ public:
 	// 让Main线程等待所有子线程执行完毕
 	void wait() const
 	{
-		while (!tasks.empty())
+		while (pending_task_count > 0)
 		{
 			std::this_thread::yield();
 		}
@@ -95,6 +97,7 @@ public:
 		{
 			for (size_t y = 0; y < height; ++y)
 			{
+				++pending_task_count;
 				tasks.push(new ParallelForTask(x, y, lambda));
 			}
 		}
@@ -105,6 +108,7 @@ public:
 	{
 		// 保证同时只有一个线程添加任务
 		MyLockGuard guard(spin_lock);
+		++pending_task_count;
 		tasks.push(task);
 	}
 
@@ -124,6 +128,7 @@ public:
 
 private:
 	std::atomic<int> alive;						// 线程池是否还存在
+	std::atomic<int> pending_task_count;		// 正在/将要执行的任务数
 	std::vector<std::thread> threads;
 	std::queue<Task*> tasks;
 	SpinLock spin_lock;
