@@ -5,11 +5,22 @@
 class Sphere : public Hittable
 {
 public:
+	// 静态球
 	Sphere(const Point3& center, double radius, shared_ptr<Material> material)
-		: center(center), radius(std::fmax(0, radius)), material(material) {}
+		: center1(center), radius(std::fmax(0, radius)), material(material), is_moving(false)
+	{}
+
+	// 动态球
+	Sphere(const Point3& center,  const Point3& center2, double radius, shared_ptr<Material> material)
+		: center1(center), radius(std::fmax(0, radius)), material(material), is_moving(true)
+	{
+		center_vec = center2 - center1;
+	}
 
 	bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override
 	{
+		Point3 center = is_moving ? sphere_center(r.time()) : center1;
+
 		// oc = 球心C - 光线原点Q
 		Vec3 oc = center - r.origin();
 		
@@ -44,7 +55,15 @@ public:
 	}
 
 private:
-	Point3 center;
+	Point3 center1;
 	double radius;
 	shared_ptr<Material> material;
+	bool is_moving;
+	Vec3 center_vec;
+
+	// 根据属于[0, 1]时间, 返回属于[center1, center2]线性插值的位置
+	Point3 sphere_center(double time) const
+	{
+		return center1 + time * center_vec;
+	}
 };
