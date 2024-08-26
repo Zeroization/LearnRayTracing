@@ -27,7 +27,7 @@ public:
 			direction = refract(unit_direction, rec.normal, ri);
 		}
 
-		scattered = Ray(rec.position, direction);
+		scattered = Ray(rec.position, direction, r_in.time());
 		return true;
 	}
 

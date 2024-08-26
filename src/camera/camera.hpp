@@ -4,6 +4,9 @@
 #include "../ray/hittable.hpp"
 #include "../material/material.hpp"
 
+#include <atomic>
+#include <syncstream>
+
 class Camera
 {
 public:
@@ -24,20 +27,29 @@ public:
 	{
 		initialize();
 
-		std::cout << std::format("P3\n{} {}\n255\n", imgWidth, imgHeight);
-		for (int j = 0; j < imgHeight; ++j)
+		ThreadPool thread_pool;
+		Film film(imgWidth, imgHeight);
+
+		thread_pool.parallelFor(film.getWidth(), film.getHeight(), [&](size_t x, size_t y)
 		{
-			for (int i = 0; i < imgWidth; ++i)
+			Color final_pixel_color(0, 0, 0);
+			for (int sampleCnt = 0; sampleCnt < samples_per_pixel; ++sampleCnt)
 			{
-				Color final_pixel_color(0, 0, 0);
-				for (int sampleCnt = 0; sampleCnt < samples_per_pixel; ++sampleCnt)
-				{
-					Ray r = get_ray(i, j);
-					final_pixel_color += ray_color(r, max_depth, world);
-				}
-				writeColor(std::cout, pixel_sample_scale * final_pixel_color);
+				Ray r = get_ray(x, y);
+				final_pixel_color += ray_color(r, max_depth, world);
 			}
-		}
+			film.setPixel(x, y, pixel_sample_scale * final_pixel_color);
+
+			// 进度条
+			++count;
+			if (count % film.getWidth() == 0)
+			{
+				std::osyncstream(std::cout) << static_cast<float>(count) / (film.getHeight() * film.getWidth()) << '\n';
+			}
+		});
+		thread_pool.wait();
+
+		film.save("ppm/filmTest.ppm");
 	}
 
 private:
@@ -50,6 +62,7 @@ private:
 	Vec3 u, v, w;						// 相机空间的三个坐标轴
 	Vec3 defocus_disk_u;				// 散焦模糊的水平和竖直半径
 	Vec3 defocus_disk_v;
+	std::atomic<int> count = 0;			// 渲染完的像素数
 
 	void initialize()
 	{
@@ -96,8 +109,9 @@ private:
 
 		Point3 ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
 		Vec3 ray_direction = pixel_sample - ray_origin;
+		double ray_time = random_double();
 
-		return Ray(ray_origin, ray_direction);
+		return Ray(ray_origin, ray_direction, ray_time);
 	}
 
 	// 返回位于[-.5,-.5]-[+.5,+.5]间的随机2D偏移量

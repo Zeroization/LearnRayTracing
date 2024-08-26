@@ -11,7 +11,7 @@ public:
 	{
 		Vec3 reflected_direction = reflect(r_in.direction(), rec.normal);
 		reflected_direction = unitVector(reflected_direction) + (fuzz * random_unit_vector());
-		scattered = Ray(rec.position, reflected_direction);
+		scattered = Ray(rec.position, reflected_direction, r_in.time());
 		attenuation = albedo;
 		return (dot(scattered.direction(), rec.normal) > 0);
 	}

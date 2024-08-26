@@ -38,3 +38,4 @@ inline double random_double(double min, double max)
 #include "util/interval.hpp"
 #include "ray/ray.hpp"
 #include "util/vec3.hpp"
+#include "util/thread_pool.hpp"
