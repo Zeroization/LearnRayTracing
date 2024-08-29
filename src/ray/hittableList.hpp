@@ -14,6 +14,7 @@ public:
 	void add(shared_ptr<Hittable> object) 
 	{
 		objects.push_back(object);
+		bbox = AABB(bbox, object->bounding_box());
 	}
 
 	bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override
@@ -34,4 +35,9 @@ public:
 
 		return isHit;
 	}
+
+	AABB bounding_box() const override { return bbox; }
+
+private:
+	AABB bbox;
 };

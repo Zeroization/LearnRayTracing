@@ -1,5 +1,6 @@
 ﻿#include "rtweekend.h"
 
+#include "accelerate/bvh.hpp"
 #include "camera/film.hpp"
 #include "camera/camera.hpp"
 #include "ray/hittable.hpp"
@@ -91,9 +92,14 @@ int main()
     HittableList world;
     Camera cam;
 
+    // 场景加载
     // modelScene(world, cam);
     book1Scene(world, cam);
 
+    // BVH加载
+    world = HittableList(make_shared<BVHNode>(world));
+
+    // 场景渲染
 	cam.render(world);
 
 	return 0;

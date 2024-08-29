@@ -8,7 +8,10 @@ public:
 	Triangle(const Point3& p0, const Point3& p1, const Point3& p2,
 			 const Vec3& n0, const Vec3& n1, const Vec3& n2,
 			 shared_ptr<Material> material)
-		: p0(p0), p1(p1), p2(p2), n0(n0), n1(n1), n2(n2), material(material) {}
+		: p0(p0), p1(p1), p2(p2), n0(n0), n1(n1), n2(n2), material(material)
+	{
+		build_aabb();
+	}
 
 	Triangle(const Point3& p0, const Point3& p1, const Point3& p2, 
 			 shared_ptr<Material> material)
@@ -20,8 +23,9 @@ public:
 		n0 = normal;
 		n1 = normal;
 		n2 = normal;
-	}
 
+		build_aabb();
+	}
 
 	bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override
 	{
@@ -57,8 +61,16 @@ public:
 		return false;
 	}
 
+	AABB bounding_box() const override { return bbox; }
+
 private:
 	Point3 p0, p1, p2;	// 三角形的顶点位置信息
 	Vec3 n0, n1, n2;	// 三角形的顶点法线信息
 	shared_ptr<Material> material;
+	AABB bbox;
+
+	void build_aabb()
+	{
+		bbox = AABB(p0, p1, p2);
+	}
 };
