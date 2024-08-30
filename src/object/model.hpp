@@ -11,7 +11,10 @@ class Model : public Hittable
 {
 public:
 	Model(const std::vector<Triangle>& triangles, shared_ptr<Material> material)
-		: triangles(triangles), material(material) {}
+		: triangles(triangles), material(material)
+	{
+		build_aabb();
+	}
 	Model(const std::filesystem::path& filename, shared_ptr<Material> material)
 		: material(material)
 	{
@@ -66,6 +69,7 @@ public:
 				));
 			}
 		}
+		build_aabb();
 	}
 
 	bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override
@@ -84,7 +88,20 @@ public:
 
 		return isHit;
 	}
+
+	AABB bounding_box() const override { return bbox; }
+
 private:
+	AABB bbox;
 	std::vector<Triangle> triangles;
 	shared_ptr<Material> material;
+
+	// 构建包围盒
+	void build_aabb()
+	{
+		for (const auto& triangle : triangles)
+		{
+			bbox = AABB(bbox, triangle.bounding_box());
+		}
+	}
 };
