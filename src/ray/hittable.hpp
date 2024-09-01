@@ -13,6 +13,7 @@ public:
 	Vec3 normal;
 	shared_ptr<Material> material;
 	double t;
+	double u, v;
 	bool front_face;
 
 	

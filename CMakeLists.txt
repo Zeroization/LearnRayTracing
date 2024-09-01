@@ -10,5 +10,9 @@ project (
 file(GLOB_RECURSE SOURCE_CODE "src/*.cpp" "src/*.h" "src/*.hpp")
 
 add_executable (LearnRayTracing "${SOURCE_CODE}")
+add_subdirectory("thirdParty")
 
+target_link_libraries(LearnRayTracing
+	PUBLIC stb_image
+)
 target_compile_features(LearnRayTracing PUBLIC cxx_std_20)

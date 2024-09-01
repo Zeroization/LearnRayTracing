@@ -57,6 +57,7 @@ public:
 		rec.position = r.at(rec.t);
 		Vec3 outward_normal = (rec.position - center) / radius;	// 利用定义简化法线计算
 		rec.set_face_normal(r, outward_normal);
+		get_sphere_uv(outward_normal, rec.u, rec.v);
 		rec.material = material;
 
 		return true;
@@ -76,5 +77,20 @@ private:
 	Point3 sphere_center(double time) const
 	{
 		return center1 + time * center_vec;
+	}
+
+	/**
+	 * 将直角坐标转换为UV坐标
+	 * @param p 单位球面上1点，用直角坐标表示
+	 * @param u 返回方位角\phi到[0, 1]的映射
+	 * @param v 返回极角\theta到[0, 1]的映射
+	 */
+	static void get_sphere_uv(const Point3& p, double& u, double& v)
+	{
+		double theta = std::acos(-p.y());
+		double phi = std::atan2(-p.z(), p.x()) + pi;
+
+		u = phi / (2 * pi);
+		v = theta / pi;
 	}
 };
