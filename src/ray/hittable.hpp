@@ -1,5 +1,8 @@
 ﻿#pragma once
 
+#include "../rtweekend.h"
+#include "../accelerate/aabb.hpp"
+
 // 不添加定义, 避免循环引用
 class Material;
 
@@ -10,6 +13,7 @@ public:
 	Vec3 normal;
 	shared_ptr<Material> material;
 	double t;
+	double u, v;
 	bool front_face;
 
 	
@@ -27,4 +31,6 @@ public:
 	virtual ~Hittable() = default;
 
 	virtual bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const = 0;
+
+	virtual AABB bounding_box() const = 0;
 };

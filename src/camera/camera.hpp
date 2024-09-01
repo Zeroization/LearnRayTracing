@@ -109,8 +109,9 @@ private:
 
 		Point3 ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
 		Vec3 ray_direction = pixel_sample - ray_origin;
+		double ray_time = random_double();
 
-		return Ray(ray_origin, ray_direction);
+		return Ray(ray_origin, ray_direction, ray_time);
 	}
 
 	// 返回位于[-.5,-.5]-[+.5,+.5]间的随机2D偏移量
