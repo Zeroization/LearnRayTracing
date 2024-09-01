@@ -126,18 +126,38 @@ void earth(HittableList& world, Camera& cam)
     cam.defocus_angle = 0;
 }
 
+void perlinSphere(HittableList& world, Camera& cam)
+{
+    auto perlin_tex = make_shared<NoiseTexture>(4);
+    world.add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, make_shared<Lambertian>(perlin_tex)));
+    world.add(make_shared<Sphere>(Point3(0, 2, 0), 2, make_shared<Lambertian>(perlin_tex)));
+
+    cam.aspectRadio = 16.0 / 9.0;
+    cam.imgWidth = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20;
+    cam.lookFrom = Point3(13, 2, 3);
+    cam.lookAt = Point3(0, 0, 0);
+    cam.vup = Vec3(0, 1, 0);
+
+    cam.defocus_angle = 0;
+}
+
 int main()
 {
     HittableList world;
     Camera cam;
 
     // 场景加载
-    switch (3)
+    switch (5)
     {
         case 1: book1Scene(world, cam); break;
         case 2: checkedSpheresScene(world, cam); break;
         case 3: modelScene(world, cam); break;
         case 4: earth(world, cam); break;
+        case 5: perlinSphere(world, cam); break;
     }
 	
     // BVH加载
