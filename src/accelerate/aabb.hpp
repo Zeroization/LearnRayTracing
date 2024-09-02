@@ -11,13 +11,18 @@ public:
 	AABB() = default;
 	// 创建一个区间分量为x, y, z的AABB
 	AABB(const Interval& x, const Interval& y, const Interval& z)
-		: x(x), y(y), z(z) {}
+		: x(x), y(y), z(z)
+	{
+		pad_to_minimums();
+	}
 	// 用两个点创建一个AABB
 	AABB(const Point3& a, const Point3& b)
 	{
 		x = (a[0] <= b[0]) ? Interval(a[0], b[0]) : Interval(b[0], a[0]);
 		y = (a[1] <= b[1]) ? Interval(a[1], b[1]) : Interval(b[1], a[1]);
 		z = (a[2] <= b[2]) ? Interval(a[2], b[2]) : Interval(b[2], a[2]);
+
+		pad_to_minimums();
 	}
 	// 用三个点创建一个AABB
 	AABB(const Point3& a, const Point3& b, const Point3& c)
@@ -28,6 +33,8 @@ public:
 		y = Interval(minY, maxY);
 		auto [minZ, maxZ] = std::minmax({a[2], b[2], c[2]});
 		z = Interval(minZ, maxZ);
+
+		pad_to_minimums();
 	}
 	// 合并两个包围盒
 	AABB(const AABB& box0, const AABB& box1)
@@ -93,6 +100,16 @@ public:
 	}
 
 	static const AABB empty, universe;
+
+private:
+	// 给包围盒设置极小的厚度
+	void pad_to_minimums()
+	{
+		double delta = 0.0001;
+		if (x.size() < delta)	x = x.expand(delta);
+		if (y.size() < delta)	y = y.expand(delta);
+		if (z.size() < delta)	z = z.expand(delta);
+	}
 };
 
 const AABB AABB::empty = AABB(Interval::empty, Interval::empty, Interval::empty);

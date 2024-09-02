@@ -106,7 +106,7 @@ void checkedSpheresScene(HittableList& world, Camera& cam)
     cam.defocus_angle = 0;
 }
 
-void earth(HittableList& world, Camera& cam)
+void earthScene(HittableList& world, Camera& cam)
 {
     auto earth_tex = make_shared<ImageTexture>("resources/images/earthmap.jpg");
     auto earth_surface = make_shared<Lambertian>(earth_tex);
@@ -126,7 +126,7 @@ void earth(HittableList& world, Camera& cam)
     cam.defocus_angle = 0;
 }
 
-void perlinSphere(HittableList& world, Camera& cam)
+void perlinSphereScene(HittableList& world, Camera& cam)
 {
     auto perlin_tex = make_shared<NoiseTexture>(4);
     world.add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, make_shared<Lambertian>(perlin_tex)));
@@ -145,19 +145,47 @@ void perlinSphere(HittableList& world, Camera& cam)
     cam.defocus_angle = 0;
 }
 
+void quadsScene(HittableList& world, Camera& cam)
+{
+    auto left_red = make_shared<Lambertian>(Color(1.0, 0.2, 0.2));
+    auto back_green = make_shared<Lambertian>(Color(0.2, 1.0, 0.2));
+    auto right_blue = make_shared<Lambertian>(Color(0.2, 0.2, 1.0));
+    auto upper_orange = make_shared<Lambertian>(Color(1.0, 0.5, 0.0));
+    auto lower_teal = make_shared<Lambertian>(Color(0.2, 0.8, 0.8));
+
+    world.add(make_shared<Quad>(Point3(-3, -2, 5), Vec3(0, 0, -4), Vec3(0, 4, 0), left_red));
+    world.add(make_shared<Quad>(Point3(-2, -2, 0), Vec3(4, 0, 0), Vec3(0, 4, 0), back_green));
+    world.add(make_shared<Quad>(Point3(3, -2, 1), Vec3(0, 0, 4), Vec3(0, 4, 0), right_blue));
+    world.add(make_shared<Quad>(Point3(-2, 3, 1), Vec3(4, 0, 0), Vec3(0, 0, 4), upper_orange));
+    world.add(make_shared<Quad>(Point3(-2, -3, 5), Vec3(4, 0, 0), Vec3(0, 0, -4), lower_teal));
+
+    cam.aspectRadio = 1.0;
+    cam.imgWidth = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 80;
+    cam.lookFrom = Point3(0, 0, 9);
+    cam.lookAt = Point3(0, 0, 0);
+    cam.vup = Vec3(0, 1, 0);
+
+    cam.defocus_angle = 0;
+}
+
 int main()
 {
     HittableList world;
     Camera cam;
 
     // 场景加载
-    switch (5)
+    switch (6)
     {
         case 1: book1Scene(world, cam); break;
         case 2: checkedSpheresScene(world, cam); break;
         case 3: modelScene(world, cam); break;
-        case 4: earth(world, cam); break;
-        case 5: perlinSphere(world, cam); break;
+        case 4: earthScene(world, cam); break;
+        case 5: perlinSphereScene(world, cam); break;
+        case 6: quadsScene(world, cam); break;
     }
 	
     // BVH加载
