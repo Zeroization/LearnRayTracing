@@ -4,3 +4,4 @@
 #include "lambertian.hpp"
 #include "metal.hpp"
 #include "dielectric.hpp"
+#include "diffuse_light.hpp"
