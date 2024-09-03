@@ -43,3 +43,13 @@ public:
 // 常用区间定义
 const Interval Interval::empty = Interval(+infinity, -infinity);
 const Interval Interval::universe = Interval(-infinity, +infinity);
+
+inline Interval operator+(const Interval& ival, double displacement)
+{
+	return Interval(ival.min + displacement, ival.max + displacement);
+}
+
+inline Interval operator+(double displacement, const Interval& ival)
+{
+	return ival + displacement;
+}

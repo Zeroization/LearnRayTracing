@@ -5,6 +5,7 @@
 #include "camera/camera.hpp"
 #include "ray/hittable.hpp"
 #include "ray/hittableList.hpp"
+#include "instance/transform.h"
 #include "material/materials.h"
 #include "object/objects.h"
 
@@ -216,9 +217,18 @@ void cornellBoxScene(HittableList& world, Camera& cam)
     world.add(make_shared<Quad>(Point3(555, 555, 555), Vec3(-555, 0, 0), Vec3(0, 0, -555), white));
     world.add(make_shared<Quad>(Point3(0, 0, 555), Vec3(555, 0, 0), Vec3(0, 555, 0), white));
 
+    shared_ptr<Hittable> box1 = box(Point3(0, 0, 0), Point3(165, 330, 165), white);
+    box1 = make_shared<Rotate>(box1, RotateAxis::Y, 15);
+    box1 = make_shared<Translate>(box1, Vec3(265, 0, 295));
+    world.add(box1);
+    shared_ptr<Hittable> box2 = box(Point3(0, 0, 0), Point3(165, 165, 165), white);
+    box2 = make_shared<Rotate>(box2, RotateAxis::Y, -18);
+    box2 = make_shared<Translate>(box2, Vec3(130, 0, 65));
+    world.add(box2);
+
     cam.aspectRadio = 1.0;
-    cam.imgWidth = 600;
-    cam.samples_per_pixel = 200;
+    cam.imgWidth = 400;
+    cam.samples_per_pixel = 100;
     cam.max_depth = 50;
     cam.background = Color(0, 0, 0);
 
