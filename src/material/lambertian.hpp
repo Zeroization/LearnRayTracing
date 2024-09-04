@@ -5,7 +5,8 @@
 class Lambertian : public Material
 {
 public:
-	Lambertian(const Color& albedo) : albedo(albedo) {}
+	Lambertian(const Color& albedo) : tex(make_shared<SolidColor>(albedo)) {}
+	Lambertian(shared_ptr<Texture> tex) : tex(tex) {}
 
 	bool scatter(const Ray& r_in, const HitRecord& rec, Color& attenuation, Ray& scattered) const override
 	{
@@ -20,10 +21,10 @@ public:
 		}
 
 		scattered = Ray(rec.position, scatter_direction, r_in.time());
-		attenuation = albedo;
+		attenuation = tex->value(rec.u, rec.v, rec.position);
 		return true;
 	}
 
 private:
-	Color albedo;
+	shared_ptr<Texture> tex;
 };

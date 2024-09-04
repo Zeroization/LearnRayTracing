@@ -14,6 +14,7 @@ public:
 	int imgWidth = 100;					// 图像宽度
 	int samples_per_pixel = 10;			// 每像素采样数, 即SPP
 	int max_depth = 10;					// 光线的最大弹射次数
+	Color background;					// 场景的背景色
 
 	double vfov = 90;					// 垂直fov
 	Point3 lookFrom = Point3(0, 0, 0);	// 相机本体位置
@@ -135,26 +136,24 @@ private:
 			return Color(0, 0, 0);
 		}
 
-		// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 和光线相交物体 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+		// 光线没打中物体, 返回背景色
 		HitRecord rec;
-		if (world.hit(r, Interval(0.001, infinity), rec))
+		if (!world.hit(r, Interval(0.001, infinity), rec))
 		{
-			Ray scattered;
-			Color attenuation;
-			if (rec.material->scatter(r, rec, attenuation, scattered))
-			{
-				return attenuation * ray_color(scattered, depth - 1, world);
-			}
-			return Color(0, 0, 0);
+			return background;
 		}
-		// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 和光线相交物体 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-		// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 背景 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-		Vec3 dir = r.direction();
-		// a in [-1, 1] -> a in [0, 1]
-		double a = 0.5 * (dir.y() + 1.0);
-		// 线性混合
-		return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
-		// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 背景 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+		// 光线打到物体, 看情况返回这条光线的颜色
+		Ray scattered;
+		Color attenuation;
+		Color color_from_emission = rec.material->emitted(rec.u, rec.v, rec.position);
+
+		if (!rec.material->scatter(r, rec, attenuation, scattered))
+		{
+			return color_from_emission;
+		}
+		Color color_from_scatter = attenuation * ray_color(scattered, depth - 1, world);
+
+		return color_from_emission + color_from_scatter;
 	}
 };
