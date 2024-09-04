@@ -240,13 +240,132 @@ void cornellBoxScene(HittableList& world, Camera& cam)
     cam.defocus_angle = 0;
 }
 
+void cornellSmokeScene(HittableList& world, Camera& cam)
+{
+    auto red = make_shared<Lambertian>(Color(.65, .05, .05));
+    auto white = make_shared<Lambertian>(Color(.73, .73, .73));
+    auto green = make_shared<Lambertian>(Color(.12, .45, .15));
+    auto light = make_shared<DiffuseLight>(Color(7, 7, 7));
+
+    world.add(make_shared<Quad>(Point3(555, 0, 0), Vec3(0, 555, 0), Vec3(0, 0, 555), green));
+    world.add(make_shared<Quad>(Point3(0, 0, 0), Vec3(0, 555, 0), Vec3(0, 0, 555), red));
+    world.add(make_shared<Quad>(Point3(113, 554, 127), Vec3(330, 0, 0), Vec3(0, 0, 305), light));
+    world.add(make_shared<Quad>(Point3(0, 555, 0), Vec3(555, 0, 0), Vec3(0, 0, 555), white));
+    world.add(make_shared<Quad>(Point3(0, 0, 0), Vec3(555, 0, 0), Vec3(0, 0, 555), white));
+    world.add(make_shared<Quad>(Point3(0, 0, 555), Vec3(555, 0, 0), Vec3(0, 555, 0), white));
+
+    shared_ptr<Hittable> box1 = box(Point3(0, 0, 0), Point3(165, 330, 165), white);
+    box1 = make_shared<Rotate>(box1, RotateAxis::Y, 15);
+    box1 = make_shared<Translate>(box1, Vec3(265, 0, 295));
+
+    shared_ptr<Hittable> box2 = box(Point3(0, 0, 0), Point3(165, 165, 165), white);
+    box2 = make_shared<Rotate>(box2, RotateAxis::Y, -18);
+    box2 = make_shared<Translate>(box2, Vec3(130, 0, 65));
+
+    world.add(make_shared<ConstantMedium>(box1, 0.01, Color(0, 0, 0)));
+    world.add(make_shared<ConstantMedium>(box2, 0.01, Color(1, 1, 1)));
+
+    cam.aspectRadio = 1.0;
+    cam.imgWidth = 600;
+    cam.samples_per_pixel = 200;
+    cam.max_depth = 50;
+    cam.background = Color(0, 0, 0);
+
+    cam.vfov = 40;
+    cam.lookFrom = Point3(278, 278, -800);
+    cam.lookAt = Point3(278, 278, 0);
+    cam.vup = Vec3(0, 1, 0);
+
+    cam.defocus_angle = 0;
+}
+
+void book2Scene(HittableList& world, Camera& cam, int img_Width, int spp, int max_depth)
+{
+    // 地面的盒子
+    auto ground = make_shared<Lambertian>(Color(0.48, 0.83, 0.53));
+	HittableList boxes1;
+    int boxes_per_size = 20;
+    for (int i = 0; i < boxes_per_size; ++i)
+    {
+	    for (int j = 0; j < boxes_per_size; ++j)
+	    {
+            auto w = 100.0;
+            auto x0 = -1000.0 + i * w;
+            auto y0 = 0.0;
+            auto z0 = -1000.0 + j * w;
+            auto x1 = x0 + w;
+            auto y1 = random_double(1, 101);
+            auto z1 = z0 + w;
+
+            boxes1.add(box(Point3(x0, y0, z0), Point3(x1, y1, z1), ground));
+	    }
+    }
+    world.add(make_shared<BVHNode>(boxes1));
+
+    // 光源
+    auto light = make_shared<DiffuseLight>(Color(7, 7, 7));
+    world.add(make_shared<Quad>(Point3(123, 554, 147), Vec3(300, 0, 0), Vec3(0, 0, 265), light));
+
+    // 运动模糊球
+    auto center1 = Point3(400, 400, 200);
+    auto center2 = center1 + Vec3(30, 0, 0);
+    auto sphere_material = make_shared<Lambertian>(Color(0.7, 0.3, 0.1));
+    world.add(make_shared<Sphere>(center1, center2, 50, sphere_material));
+
+    // 普通球
+    world.add(make_shared<Sphere>(Point3(260, 150, 45), 50, make_shared<Dielectric>(1.5)));
+    world.add(make_shared<Sphere>(Point3(0, 150, 145), 50, make_shared<Metal>(Color(0.8, 0.8, 0.9), 1.0)));
+
+    // 次表面反射球
+    auto boundary = make_shared<Sphere>(Point3(360, 150, 145), 70, make_shared<Dielectric>(1.5));
+    world.add(boundary);
+    world.add(make_shared<ConstantMedium>(boundary, 0.2, Color(0.2, 0.4, 0.9)));
+    boundary = make_shared<Sphere>(Point3(0, 0, 0), 5000, make_shared<Dielectric>(1.5));
+    world.add(make_shared<ConstantMedium>(boundary, 0.0001, Color(1, 1, 1)));
+
+    // 地图球
+    auto emat = make_shared<Lambertian>(make_shared<ImageTexture>("resources/images/earthmap.jpg"));
+    world.add(make_shared<Sphere>(Point3(400, 200, 400), 100, emat));
+
+    // 柏林噪声球
+    auto perlin_tex = make_shared<NoiseTexture>(0.2);
+    world.add(make_shared<Sphere>(Point3(220, 280, 300), 80, make_shared<Lambertian>(perlin_tex)));
+
+    // 方形排列的球们
+    HittableList boxes2;
+    auto white = make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
+    int ns = 1000;
+    for (int i = 0; i < ns; ++i)
+    {
+        boxes2.add(make_shared<Sphere>(Point3::random(0, 165), 10, white));
+    }
+    world.add(make_shared<Translate>(
+        make_shared<Rotate>(make_shared<BVHNode>(boxes2), RotateAxis::Y, 15)
+        , Vec3(-100, 270, 395))
+    );
+
+    // 摄像机设置
+    cam.aspectRadio = 1.0;
+    cam.imgWidth = img_Width;
+    cam.samples_per_pixel = spp;
+    cam.max_depth = max_depth;
+    cam.background = Color(0, 0, 0);
+
+    cam.vfov = 40;
+    cam.lookFrom = Point3(478, 278, -600);
+    cam.lookAt = Point3(278, 278, 0);
+    cam.vup = Vec3(0, 1, 0);
+
+    cam.defocus_angle = 0;
+}
+
 int main()
 {
     HittableList world;
     Camera cam;
 
     // 场景加载
-    switch (8)
+    switch (10)
     {
         case 1: book1Scene(world, cam);         break;
         case 2: checkedSpheresScene(world, cam);break;
@@ -256,6 +375,13 @@ int main()
         case 6: quadsScene(world, cam);         break;
         case 7: simpleLightScene(world, cam);   break;
         case 8: cornellBoxScene(world, cam);    break;
+        case 9: cornellSmokeScene(world, cam);  break;
+        case 10: 
+            book2Scene(world, cam, 800, 10000, 40);
+            break;
+        default:
+            book2Scene(world, cam, 400, 250, 4);
+            break;
     }
 	
     // BVH加载

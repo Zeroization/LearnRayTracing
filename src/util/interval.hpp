@@ -41,7 +41,9 @@ public:
 };
 
 // 常用区间定义
+// 空区间
 const Interval Interval::empty = Interval(+infinity, -infinity);
+// 全体区间
 const Interval Interval::universe = Interval(-infinity, +infinity);
 
 inline Interval operator+(const Interval& ival, double displacement)
